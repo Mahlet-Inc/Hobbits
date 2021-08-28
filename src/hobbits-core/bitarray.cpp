@@ -771,6 +771,122 @@ QSharedPointer<BitArray> BitArray::fromString(QString bitArraySpec, QStringList 
     }
 }
 
+char BitArray::hexTable(qint64 nibble) const {
+    char chr;
+    if (nibble == 0) {
+        chr = '0';
+    } else if (nibble == 1) {
+        chr = '1';
+    } else if (nibble == 2) {
+        chr = '2';
+    } else if (nibble == 3) {
+        chr = '3';
+    } else if (nibble == 4) {
+        chr = '4';
+    } else if (nibble == 5) {
+        chr = '5';
+    } else if (nibble == 6) {
+        chr = '6';
+    } else if (nibble == 7) {
+        chr = '7';
+    } else if (nibble == 8) {
+        chr = '8';
+    } else if (nibble == 9) {
+        chr = '9';
+    } else if (nibble == 10) {
+        chr = 'a';
+    } else if (nibble == 11) {
+        chr = 'b';
+    } else if (nibble == 12) {
+        chr = 'c';
+    } else if (nibble == 13) {
+        chr = 'd';
+    } else if (nibble == 14) {
+        chr = 'e';
+    } else if (nibble == 15) {
+        chr = 'f';
+    } else {
+        chr = 'o';
+    }
+    return chr;
+}
+
+QString BitArray::toBin() const {
+    QString str = "";
+
+    for (quint64 i = 0; i < this->sizeInBits(); i ++) {
+        if (i < this->sizeInBits() && i >= 0) {
+            if (this->at(i) == false) {
+                str+="0";
+            } else {
+                str+="1";
+            }
+        }
+    }
+    return str;
+}
+
+QString BitArray::toBin(qint64 start, int length) const {
+    QString str = "";
+
+    for (quint64 i = start; i < start + length; i ++) {
+        if (i < this->sizeInBits() && i >= 0) {
+            if (this->at(i) == false) {
+                str+="0";
+            } else {
+                str+="1";
+            }
+        }
+    }
+    return str;
+}
+
+QString BitArray::toHex() const {
+    QString str = "";
+    quint64 nib = 0;
+
+    for (quint64 i = 0; i < this->sizeInBits(); i ++) {
+        if (i < this->sizeInBits() && i >= 0) {
+           nib = this->parseUIntValue(i, 4);
+        }
+        str += hexTable(nib);
+    }
+    return str;
+}
+
+QString BitArray::toHex(qint64 start, int length) const {
+    QString str = "";
+    quint64 nib = 0;
+
+    for (quint64 i = start*4; i < start*4+length*4; i += 4) {
+        if (i < this->sizeInBits() && i >= 0) {
+           nib = this->parseUIntValue(i, 4);
+           str += hexTable(nib);
+        }       
+    }
+    return str;
+}
+
+QString BitArray::toAscii() const {
+    quint64 size = this->sizeInBits()/8;
+    QByteArray arr = readBytes(0, size);
+
+    std::string text(arr.constData(), arr.length());
+    QString qtext = QString::fromStdString(text);
+
+    return qtext;
+}
+
+QString BitArray::toAscii(qint64 start, int length) const {
+    quint64 size = this->sizeInBits()/8;
+    QByteArray arr = readBytes(start, length);
+
+    std::string text(arr.constData(), arr.length());
+    QString qtext = QString::fromStdString(text);
+
+    return qtext;
+}
+
 BitArray::CacheLoadLocker::CacheLoadLocker(qint64 bitIndex, const BitArray *bitArray) :
     m_locker(&bitArray->m_cacheMutex) {
     qint64 srcCacheIdx = bitIndex / CACHE_CHUNK_BIT_SIZE;
